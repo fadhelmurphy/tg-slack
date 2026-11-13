@@ -12,10 +12,10 @@ input, textarea { font: inherit; }
 .login-card input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
 .login-card button { background: #007a5a; color: #fff; padding: 10px; border-radius: 6px; font-weight: 600; }
 
-.app { height: 100%; display: flex; }
-.rail { width: 64px; background: #350d36; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; }
+.app { height: 100vh; height: 100dvh; display: flex; overflow: hidden; }
+.rail { flex: none; width: 64px; background: #350d36; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; }
 .rail button { width: 40px; height: 40px; border-radius: 10px; background: #5b2c5c; color: #fff; font-weight: 700; }
-.rail button.on { outline: 3px solid #fff; }
+.rail button.on { outline: none; box-shadow: inset 0 0 0 2px #fff; }
 .side { width: 250px; background: #3f0e40; color: #d6c8d6; display: flex; flex-direction: column; overflow-y: auto; }
 .side h2 { margin: 0; padding: 14px 16px; color: #fff; font-size: 17px; border-bottom: 1px solid #5b2c5c; }
 .section { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 4px; font-size: 13px; }
@@ -59,13 +59,33 @@ input, textarea { font: inherit; }
 .composer-bar .primary { background: #007a5a; color: #fff; border-radius: 6px; padding: 4px 14px; }
 .composer-bar .primary:disabled { background: #bbb; }
 
-.back { display: none; font-size: 18px; margin-right: 8px; }
-@media (max-width: 800px) {
-  .rail { width: 48px; } .rail button { width: 36px; height: 36px; }
-  .side { flex: 1; width: auto; } .main { display: none; }
-  .app.show-main .side { display: none; } .app.show-main .main { display: flex; }
-  .back { display: inline; } .main > header { justify-content: flex-start; } .search { margin-left: auto; width: 120px; }
-  .thread { position: fixed; inset: 0; width: 100%; background: #fff; z-index: 10; }
-}
-
 [hidden] { display: none !important; }
+
+.rail-list { flex: 1; min-height: 0; width: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; scrollbar-width: none; }
+.rail-list::-webkit-scrollbar { display: none; }
+.side, .main, .thread, .feed { min-height: 0; }
+.composer { margin-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.composer textarea, .search, .newtopic { font-size: 16px; }
+
+.back { display: none; font-size: 20px; margin-right: 8px; padding: 4px 8px; }
+@media (max-width: 800px) {
+  .app { flex-direction: column; }
+  .rail { width: 100%; height: 58px; flex-direction: row; padding: 9px 10px; gap: 8px; }
+  .rail-list { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+  .rail button { flex: none; width: 40px; height: 40px; }
+  .side { flex: 1; width: auto; }
+  .main { display: none; }
+  .app.show-main .rail, .app.show-main .side { display: none; }
+  .app.show-main .main { display: flex; flex: 1; }
+  .back { display: inline-block; }
+  .main > header { justify-content: flex-start; padding: 8px 10px; }
+  .main > header b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search { margin-left: auto; width: 130px; }
+  .item { padding: 10px 16px; font-size: 16px; }
+  .msg { padding: 8px 12px; }
+  .actions { display: flex; position: static; border: 0; margin-left: auto; align-self: flex-start; }
+  .actions > button { padding: 2px 6px; opacity: .6; }
+  .photo { max-width: 100%; }
+  .thread { position: fixed; inset: 0; width: 100%; background: #fff; z-index: 10; }
+  .composer { margin: 0 10px calc(10px + env(safe-area-inset-bottom)); }
+}

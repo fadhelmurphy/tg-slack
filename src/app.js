@@ -171,10 +171,10 @@ function render(opts = {}) {
   const dms = state.convs.filter((c) => c.kind === 'dm')
 
   // rail
-  fill(els.rail, 
-    forums.map((c) => h('button', { class: state.rail === c.key ? 'on' : '', title: c.title, onclick: () => selectRail(c.key) }, c.title.slice(0, 2).toUpperCase())),
+  fill(els.rail,
     h('button', { class: state.rail === 'dm' ? 'on' : '', title: 'Pesan langsung', onclick: () => selectRail('dm') }, '✉'),
-    h('div', { class: 'grow' }), h('button', { title: 'Keluar', onclick: logout }, '⎋'))
+    h('div', { class: 'rail-list' }, forums.map((c) => h('button', { class: state.rail === c.key ? 'on' : '', title: c.title, onclick: () => selectRail(c.key) }, c.title.slice(0, 2).toUpperCase()))),
+    h('button', { title: 'Keluar', onclick: logout }, '⎋'))
 
   // sidebar
   const items = state.rail === 'dm' ? dms.map((c) => ({ id: 0, label: c.title, conv: c }))
