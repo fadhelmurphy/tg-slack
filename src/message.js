@@ -14,12 +14,14 @@ async function download(msg) {
 
 function mediaEl(msg, convKey) {
   const m = msg.media
-  if (m.kind === 'photo') {
+  if (m.kind === 'photo' || m.kind === 'sticker') {
     const key = convKey + ':' + msg.id
     const box = h('div', { class: 'photo ph' }, 'Memuat gambar…')
-    const show = (url) => box.replaceWith(h('img', { class: 'photo', src: url, alt: '' }))
+    const cls = m.kind === 'sticker' ? 'sticker' : 'photo'
+    const mime = m.kind === 'sticker' ? 'image/webp' : 'image/jpeg'
+    const show = (url) => box.replaceWith(h('img', { class: cls, src: url, alt: '' }))
     if (blobCache.has(key)) show(blobCache.get(key))
-    else download(msg).then((b) => { const u = URL.createObjectURL(new Blob([b], { type: 'image/jpeg' })); blobCache.set(key, u); show(u) })
+    else download(msg).then((b) => { const u = URL.createObjectURL(new Blob([b], { type: mime })); blobCache.set(key, u); show(u) })
       .catch(() => { box.textContent = 'Gambar tidak bisa dimuat' })
     return box
   }

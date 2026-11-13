@@ -23,13 +23,17 @@ export function topicAndParent(m, isForum) {
 
 export function toMsg(m, isForum) {
   const { topicId, parentId } = topicAndParent(m, isForum)
-  const fromId = m.fromId?.userId ?? m.fromId?.channelId ?? ''
+  // di chat privat pesan masuk sering tanpa fromId: pengirimnya adalah lawan bicara (peerId)
+  const fromId = m.fromId?.userId ?? m.fromId?.channelId ?? (m.peerId?._ === 'peerUser' && !m.out ? m.peerId.userId : '')
   let media = null
   if (m.media?._ === 'messageMediaPhoto') media = { kind: 'photo', name: 'foto.jpg', size: 0 }
   else if (m.media?._ === 'messageMediaDocument' && m.media.document?._ === 'document') {
     const d = m.media.document
     const fn = d.attributes.find((a) => a._ === 'documentAttributeFilename')
-    media = { kind: 'file', name: fn?.fileName ?? 'berkas', size: Number(d.size) }
+    const st = d.attributes.find((a) => a._ === 'documentAttributeSticker')
+    if (st && d.mimeType === 'image/webp') media = { kind: 'sticker', name: 'stiker.webp', size: Number(d.size) }
+    else if (st) media = { kind: 'file', name: (st.alt || '') + ' stiker', size: Number(d.size) }
+    else media = { kind: 'file', name: fn?.fileName ?? 'berkas', size: Number(d.size) }
   }
   const reactions = (m.reactions?.results ?? [])
     .filter((r) => r.reaction?._ === 'reactionEmoji')

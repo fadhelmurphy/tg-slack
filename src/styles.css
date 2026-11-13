@@ -89,3 +89,7 @@ input, textarea { font: inherit; }
   .thread { position: fixed; inset: 0; width: 100%; background: #fff; z-index: 10; }
   .composer { margin: 0 10px calc(10px + env(safe-area-inset-bottom)); }
 }
+
+.side > * { flex-shrink: 0; }
+.daysep { text-align: center; color: #616061; font-size: 12px; padding: 12px 0 4px; }
+.sticker { max-width: 160px; max-height: 160px; display: block; margin-top: 4px; }

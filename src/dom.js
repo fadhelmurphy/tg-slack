@@ -8,7 +8,7 @@ export function h(tag, props = {}, ...kids) {
     else if (k in el && k !== 'list') el[k] = v
     else el.setAttribute(k, v === true ? '' : v)
   }
-  for (const kid of kids.flat()) {
+  for (const kid of kids.flat(Infinity)) {
     if (kid == null || kid === false) continue
     el.append(kid.nodeType ? kid : document.createTextNode(String(kid)))
   }
@@ -23,3 +23,4 @@ export const add = (el, ...kids) => {
 export const fill = (el, ...kids) => add(clear(el), ...kids)
 export const fmtTime = (d) => new Date(d * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 export const fmtSize = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.ceil(n / 1024) + ' KB')
+export const dayLabel = (d) => (d ? new Date(d * 1000).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : '')

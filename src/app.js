@@ -1,5 +1,5 @@
 import Long from 'long'
-import { h, clear, add, fill } from './dom.js'
+import { h, clear, add, fill, dayLabel } from './dom.js'
 import { tg, logout } from './tg.js'
 import { messageEl, makeComposer } from './message.js'
 import { names, peerKey, rememberPeers, rootOf, toMsg, userName } from './model.js'
@@ -15,7 +15,7 @@ const fail = (e) => { state.error = e?.message || String(e); render() }
 const convFromPeer = (p) => {
   const ip = p.inputPeer
   if (p.type === 'chat' && p.isForum) return { key: 'c' + ip.channelId, kind: 'forum', title: p.displayName, id: p.id, peer: ip }
-  if (p.type === 'user' && !p.isBot && !p.isSelf) return { key: 'u' + ip.userId, kind: 'dm', title: p.displayName, id: p.id, peer: ip }
+  if (p.type === 'user' && !p.isBot && !p.isSelf && !p.isDeleted) return { key: 'u' + ip.userId, kind: 'dm', title: p.displayName, id: p.id, peer: ip }
   return null
 }
 
@@ -206,10 +206,12 @@ function render(opts = {}) {
     mainComposer.setPlaceholder(`Kirim pesan ke ${conv.kind === 'dm' ? conv.title : '#' + topicTitle(state.active.topic)}`)
     const feed = h('div', { class: 'feed' },
       h('button', { class: 'older', onclick: () => loadMessages(conv, state.active.topic, true) }, 'Muat pesan lebih lama'),
-      top.map((m) => {
+      top.map((m, i) => {
         const rs = threads.get(m.id)
-        return messageEl(m, { convKey: conv.key, replies: rs?.length, last: rs?.[rs.length - 1]?.date,
-          onThread: () => { state.results = null; state.thread = m.id; render() }, onReact: (e) => react(m, e) })
+        const day = dayLabel(m.date)
+        const sep = day !== dayLabel(top[i - 1]?.date) && h('div', { class: 'daysep' }, day)
+        return [sep, messageEl(m, { convKey: conv.key, replies: rs?.length, last: rs?.[rs.length - 1]?.date,
+          onThread: () => { state.results = null; state.thread = m.id; render() }, onReact: (e) => react(m, e) })]
       }))
     const search_ = h('input', { class: 'search', placeholder: `Cari di ${conv.title}`, value: els.query ?? '',
       oninput: (e) => { els.query = e.target.value }, onkeydown: (e) => e.key === 'Enter' && search(e.target.value) })
