@@ -1,3 +1,4 @@
+window.__boot = true
 import './styles.css'
 import { resume } from './tg.js'
 import { showLogin } from './login.js'

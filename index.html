@@ -7,6 +7,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Pesan bantuan jika aplikasi gagal dimuat (halaman putih)
+      window.__boot = false
+      function showBootError(m) {
+        var r = document.getElementById('root')
+        if (!r || window.__boot) return
+        var pre = document.createElement('pre')
+        pre.style.cssText = 'padding:16px;white-space:pre-wrap;font:14px sans-serif'
+        pre.textContent = m
+        r.replaceChildren(pre)
+      }
+      window.addEventListener('error', function (e) { showBootError('Error: ' + (e.message || 'gagal memuat')) })
+      window.addEventListener('unhandledrejection', function (e) { showBootError('Error: ' + (e.reason && e.reason.message || e.reason)) })
+      setTimeout(function () {
+        showBootError('Aplikasi tidak termuat. Jika ini GitHub Pages: Settings > Pages > Source harus "GitHub Actions", lalu cek tab Actions sudah hijau.')
+      }, 4000)
+    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
