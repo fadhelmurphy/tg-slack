@@ -59,6 +59,13 @@ input, textarea { font: inherit; }
 .composer-bar .primary { background: #007a5a; color: #fff; border-radius: 6px; padding: 4px 14px; }
 .composer-bar .primary:disabled { background: #bbb; }
 
+.back { display: none; font-size: 18px; margin-right: 8px; }
 @media (max-width: 800px) {
-  .side { width: 180px; } .thread { position: fixed; inset: 0; width: 100%; background: #fff; z-index: 10; }
+  .rail { width: 48px; } .rail button { width: 36px; height: 36px; }
+  .side { flex: 1; width: auto; } .main { display: none; }
+  .app.show-main .side { display: none; } .app.show-main .main { display: flex; }
+  .back { display: inline; } .main > header { justify-content: flex-start; } .search { margin-left: auto; width: 120px; }
+  .thread { position: fixed; inset: 0; width: 100%; background: #fff; z-index: 10; }
 }
+
+[hidden] { display: none !important; }

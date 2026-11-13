@@ -1,5 +1,5 @@
 import Long from 'long'
-import { h, clear } from './dom.js'
+import { h, clear, add, fill } from './dom.js'
 import { tg, logout } from './tg.js'
 import { messageEl, makeComposer } from './message.js'
 import { names, peerKey, rememberPeers, rootOf, toMsg, userName } from './model.js'
@@ -68,7 +68,7 @@ async function selectRail(key) {
     const list = await tg.getForumTopics(conv.id, { limit: 100 })
     state.topics[key] = [...list].map((t) => ({ id: t.id, title: t.title }))
     render()
-    if (state.topics[key].length) await openTopic(conv, state.topics[key][0].id)
+    if (state.topics[key].length && matchMedia('(min-width: 801px)').matches) await openTopic(conv, state.topics[key][0].id)
   } catch (e) { fail(e) }
 }
 
@@ -155,6 +155,7 @@ let lastTopCount = -1
 
 function render(opts = {}) {
   if (!els) return
+  els.app.classList.toggle('show-main', !!state.active)
   const conv = activeConv()
   const list = state.active ? state.msgs[k(state.active.conv, state.active.topic)] ?? [] : []
   const byId = new Map(list.map((m) => [m.id, m]))
@@ -170,7 +171,7 @@ function render(opts = {}) {
   const dms = state.convs.filter((c) => c.kind === 'dm')
 
   // rail
-  clear(els.rail).append(
+  fill(els.rail, 
     forums.map((c) => h('button', { class: state.rail === c.key ? 'on' : '', title: c.title, onclick: () => selectRail(c.key) }, c.title.slice(0, 2).toUpperCase())),
     h('button', { class: state.rail === 'dm' ? 'on' : '', title: 'Pesan langsung', onclick: () => selectRail('dm') }, '✉'),
     h('div', { class: 'grow' }), h('button', { title: 'Keluar', onclick: logout }, '⎋'))
@@ -184,7 +185,7 @@ function render(opts = {}) {
     onblur: () => { state.newTopic = null; render() },
     onkeydown: (e) => { if (e.key === 'Enter') createTopic(e.target.value); if (e.key === 'Escape') { state.newTopic = null; render() } },
   })
-  clear(els.side).append(
+  fill(els.side, 
     h('h2', {}, state.rail === 'dm' ? 'Pesan langsung' : railConv?.title ?? ''),
     !forums.length && state.rail !== 'dm' && h('p', { class: 'muted small pad' }, 'Belum ada grup dengan Topics. Buat grup di Telegram, aktifkan Topics, lalu muat ulang.'),
     h('div', { class: 'section' }, h('span', {}, state.rail === 'dm' ? 'Percakapan' : 'Channel'),
@@ -200,7 +201,7 @@ function render(opts = {}) {
   const nearBottom = !oldFeed || oldFeed.scrollHeight - oldFeed.scrollTop - oldFeed.clientHeight < 80
   const oldTop = oldFeed?.scrollTop ?? 0
   if (!conv || !state.active) {
-    clear(els.main).append(h('div', { class: 'empty muted' }, 'Pilih channel di sebelah kiri.'))
+    fill(els.main, h('div', { class: 'empty muted' }, 'Pilih channel di sebelah kiri.'))
   } else {
     mainComposer.setPlaceholder(`Kirim pesan ke ${conv.kind === 'dm' ? conv.title : '#' + topicTitle(state.active.topic)}`)
     const feed = h('div', { class: 'feed' },
@@ -212,8 +213,8 @@ function render(opts = {}) {
       }))
     const search_ = h('input', { class: 'search', placeholder: `Cari di ${conv.title}`, value: els.query ?? '',
       oninput: (e) => { els.query = e.target.value }, onkeydown: (e) => e.key === 'Enter' && search(e.target.value) })
-    clear(els.main).append(
-      h('header', {}, h('b', {}, conv.kind === 'dm' ? conv.title : '# ' + topicTitle(state.active.topic)), search_),
+    fill(els.main, 
+      h('header', {}, h('button', { class: 'back', onclick: () => { state.active = null; state.thread = null; state.results = null; render() } }, '←'), h('b', {}, conv.kind === 'dm' ? conv.title : '# ' + topicTitle(state.active.topic)), search_),
       state.error && h('div', { class: 'banner', onclick: () => { state.error = ''; render() } }, state.error + ' ✕'),
       feed, mainComposer.el)
     const grew = top.length !== lastTopCount
@@ -227,7 +228,7 @@ function render(opts = {}) {
   els.thread.hidden = !(rootMsg || state.results)
   clear(els.thread)
   if (state.results) {
-    els.thread.append(
+    add(els.thread, 
       h('header', {}, h('b', {}, `Hasil: ${state.results.length}`), h('button', { onclick: () => { state.results = null; render() } }, '✕')),
       h('div', { class: 'feed' },
         !state.results.length && h('p', { class: 'muted pad' }, 'Tidak ada hasil.'),
@@ -236,7 +237,7 @@ function render(opts = {}) {
           messageEl(m, { convKey: conv?.key, onReact: () => {} })))))
   } else if (rootMsg) {
     const rs = threads.get(rootMsg.id) ?? []
-    els.thread.append(
+    add(els.thread, 
       h('header', {}, h('b', {}, 'Thread'), h('button', { onclick: () => { state.thread = null; render() } }, '✕')),
       h('div', { class: 'feed' },
         messageEl(rootMsg, { convKey: conv.key, onReact: (e) => react(rootMsg, e) }),
@@ -254,7 +255,8 @@ export async function startApp(root) {
     rail: h('nav', { class: 'rail' }), side: h('aside', { class: 'side' }),
     main: h('main', { class: 'main' }), thread: h('aside', { class: 'thread', hidden: true }),
   }
-  root.append(h('div', { class: 'app' }, els.rail, els.side, els.main, els.thread))
+  els.app = h('div', { class: 'app' }, els.rail, els.side, els.main, els.thread)
+  root.append(els.app)
   mainComposer = makeComposer({ placeholder: 'Kirim pesan', onSend: (t) => sender(null).text(t), onFile: (f, c) => sender(null).file(f, c) })
   threadComposer = makeComposer({ placeholder: 'Balas…',
     onSend: (t) => sender(threadComposer.parent).text(t), onFile: (f, c) => sender(threadComposer.parent).file(f, c) })

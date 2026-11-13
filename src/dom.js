@@ -15,5 +15,11 @@ export function h(tag, props = {}, ...kids) {
   return el
 }
 export const clear = (el) => { el.replaceChildren(); return el }
+// append yang meratakan array dan mengabaikan null/false (append bawaan tidak)
+export const add = (el, ...kids) => {
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)))
+  return el
+}
+export const fill = (el, ...kids) => add(clear(el), ...kids)
 export const fmtTime = (d) => new Date(d * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 export const fmtSize = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.ceil(n / 1024) + ' KB')

@@ -1,13 +1,13 @@
-import { h, clear } from './dom.js'
+import { h, clear, add, fill } from './dom.js'
 import { creds, login } from './tg.js'
 
 export function showLogin(root, onDone) {
   const saved = creds.get()
   const card = h('form', { class: 'login-card' })
   const wrap = h('div', { class: 'login' }, card)
-  clear(root).append(wrap)
+  fill(root, wrap)
 
-  const paint = (...kids) => clear(card).append(h('h1', {}, 'TG Slack'),
+  const paint = (...kids) => fill(card, h('h1', {}, 'TG Slack'),
     h('p', { class: 'muted' }, 'Workspace gaya Slack di atas Telegram. Semua berjalan di browser kamu.'), ...kids)
   let error = h('p', { class: 'error' })
   const setError = (m) => { error.textContent = m }
