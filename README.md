@@ -26,3 +26,8 @@ Deploy: push ke `main`, aktifkan Pages (Source: GitHub Actions).
 - Sesi (IndexedDB) setara akses penuh ke akunmu. Jangan host di domain bersama yang tidak kamu kontrol.
 - Private channel = grup terpisah (Topics tidak bisa disembunyikan per member).
 - Belum ada: notifikasi saat tab tertutup, bot/slash command, section channel, unread badge.
+
+## Huddle / share screen
+Tombol 🎧 di header channel membuat ruang [Jitsi Meet](https://jitsi.org) dengan nama acak, mengirim linknya ke channel, dan membukanya. Klik berikutnya (dalam 4 jam) memakai ruang yang sama.
+Default `meet.jit.si` (pembuat ruang diminta login). Untuk skala besar, ganti server lewat tombol "Server huddle" di sidebar ke Jitsi self-hosted atau 8x8 JaaS.
+Share screen tidak didukung browser iOS; peserta iPhone bergabung lewat aplikasi Jitsi.

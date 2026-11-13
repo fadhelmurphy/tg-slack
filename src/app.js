@@ -2,6 +2,7 @@ import Long from 'long'
 import { h, clear, add, fill, dayLabel } from './dom.js'
 import { tg, logout } from './tg.js'
 import { messageEl, makeComposer } from './message.js'
+import { findActive, newRoomUrl, jitsiHost, setJitsiHost } from './huddle.js'
 import { names, peerKey, rememberPeers, rootOf, toMsg, userName } from './model.js'
 
 const state = {
@@ -141,6 +142,22 @@ async function search(q) {
   render()
 }
 
+async function startHuddle() {
+  const conv = activeConv()
+  if (!conv) return
+  // buka tab dulu (sinkron) agar tidak diblokir popup blocker, arahkan setelah link siap
+  const w = window.open('about:blank', '_blank')
+  try {
+    let url = findActive(state.msgs[k(state.active.conv, state.active.topic)] ?? [])
+    if (!url) {
+      url = newRoomUrl()
+      const sent = await tg.sendText(conv.id, `🎧 Huddle dimulai: ${url}`, sendParams(null))
+      upsertRaw(conv, sent.raw); render()
+    }
+    if (w) { w.opener = null; w.location.href = url } else location.href = url
+  } catch (e) { w?.close(); fail(e) }
+}
+
 async function createTopic(title) {
   const conv = convOf(state.rail)
   state.newTopic = null
@@ -194,7 +211,8 @@ function render(opts = {}) {
     items.map((it) => h('button', {
       class: 'item' + (state.active?.conv === it.conv.key && state.active.topic === it.id ? ' on' : ''),
       onclick: () => openTopic(it.conv, it.id),
-    }, (state.rail === 'dm' ? '● ' : '# ') + it.label)))
+    }, (state.rail === 'dm' ? '● ' : '# ') + it.label)),
+    h('button', { class: 'hostset', onclick: () => { const v = prompt('Server huddle (Jitsi):', jitsiHost()); if (v) { setJitsiHost(v); render() } } }, 'Server huddle: ' + jitsiHost() + ' (ubah)'))
 
   // main
   const oldFeed = els.main.querySelector('.feed')
@@ -216,7 +234,8 @@ function render(opts = {}) {
     const search_ = h('input', { class: 'search', placeholder: `Cari di ${conv.title}`, value: els.query ?? '',
       oninput: (e) => { els.query = e.target.value }, onkeydown: (e) => e.key === 'Enter' && search(e.target.value) })
     fill(els.main, 
-      h('header', {}, h('button', { class: 'back', onclick: () => { state.active = null; state.thread = null; state.results = null; render() } }, '←'), h('b', {}, conv.kind === 'dm' ? conv.title : '# ' + topicTitle(state.active.topic)), search_),
+      h('header', {}, h('button', { class: 'back', onclick: () => { state.active = null; state.thread = null; state.results = null; render() } }, '←'), h('b', {}, conv.kind === 'dm' ? conv.title : '# ' + topicTitle(state.active.topic)),
+        h('button', { class: 'huddle', title: 'Huddle (suara, video, share screen)', onclick: startHuddle }, '🎧'), search_),
       state.error && h('div', { class: 'banner', onclick: () => { state.error = ''; render() } }, state.error + ' ✕'),
       feed, mainComposer.el)
     const grew = top.length !== lastTopCount

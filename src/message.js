@@ -2,6 +2,11 @@ import { Message, PeersIndex } from '@mtcute/web'
 import { h, fmtTime, fmtSize } from './dom.js'
 import { tg } from './tg.js'
 
+const URL_RE = /(https?:\/\/[^\s<]+)/g
+function linkify(text) {
+  return text.split(URL_RE).map((part, i) =>
+    i % 2 ? h('a', { href: part, target: '_blank', rel: 'noopener noreferrer' }, part) : part)
+}
 const EMOJIS = ['👍', '❤️', '😂', '🎉', '👀', '🙏']
 const blobCache = new Map()
 
@@ -48,7 +53,7 @@ export function messageEl(msg, { convKey, replies = 0, last, onThread, onReact }
     h('div', { class: 'avatar' }, msg.senderName.slice(0, 1).toUpperCase()),
     h('div', { class: 'body' },
       h('div', { class: 'meta' }, h('b', {}, msg.senderName), ' ', h('span', { class: 'muted small' }, fmtTime(msg.date))),
-      msg.text && h('div', { class: 'text' }, msg.text),
+      msg.text && h('div', { class: 'text' }, linkify(msg.text)),
       msg.media && mediaEl(msg, convKey),
       msg.reactions.length > 0 && h('div', { class: 'reactions' }, msg.reactions.map((r) =>
         h('button', { class: 'chip' + (r.mine ? ' mine' : ''), onclick: () => onReact(r.emoji) }, `${r.emoji} ${r.count}`))),
