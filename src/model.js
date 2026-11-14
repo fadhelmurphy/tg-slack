@@ -8,7 +8,7 @@ export function rememberPeers({ users = [], chats = [] }) {
   for (const c of chats) if (c.id != null && c.title) names.set(String(c.id), c.title)
 }
 
-export const peerKey = (p) => (!p ? null : p._ === 'peerChannel' ? 'c' + p.channelId : p._ === 'peerUser' ? 'u' + p.userId : null)
+export const peerKey = (p) => (!p ? null : p._ === 'peerChannel' ? 'c' + p.channelId : p._ === 'peerUser' ? 'u' + p.userId : p._ === 'peerChat' ? 'g' + p.chatId : null)
 
 export function topicAndParent(m, isForum) {
   const rt = m.replyTo && m.replyTo._ === 'messageReplyHeader' ? m.replyTo : null

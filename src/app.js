@@ -16,6 +16,8 @@ const fail = (e) => { state.error = e?.message || String(e); render() }
 const convFromPeer = (p) => {
   const ip = p.inputPeer
   if (p.type === 'chat' && p.isForum) return { key: 'c' + ip.channelId, kind: 'forum', title: p.displayName, id: p.id, peer: ip }
+  if (p.type === 'chat' && (p.chatType === 'group' || p.chatType === 'supergroup'))
+    return { key: ip.channelId ? 'c' + ip.channelId : 'g' + ip.chatId, kind: 'group', title: p.displayName, id: p.id, peer: ip }
   if (p.type === 'user' && !p.isBot && !p.isSelf && !p.isDeleted) return { key: 'u' + ip.userId, kind: 'dm', title: p.displayName, id: p.id, peer: ip }
   return null
 }
@@ -185,11 +187,11 @@ function render(opts = {}) {
   const top = list.filter((m) => m.parentId === null || !byId.has(m.parentId))
   const topicTitle = (id) => (state.topics[state.active?.conv] ?? []).find((t) => t.id === id)?.title ?? '…'
   const forums = state.convs.filter((c) => c.kind === 'forum')
-  const dms = state.convs.filter((c) => c.kind === 'dm')
+  const dms = state.convs.filter((c) => c.kind !== 'forum') // DM + grup biasa
 
   // rail
   fill(els.rail,
-    h('button', { class: state.rail === 'dm' ? 'on' : '', title: 'Pesan langsung', onclick: () => selectRail('dm') }, '✉'),
+    h('button', { class: state.rail === 'dm' ? 'on' : '', title: 'Obrolan (DM dan grup)', onclick: () => selectRail('dm') }, '✉'),
     h('div', { class: 'rail-list' }, forums.map((c) => h('button', { class: state.rail === c.key ? 'on' : '', title: c.title, onclick: () => selectRail(c.key) }, c.title.slice(0, 2).toUpperCase()))),
     h('button', { title: 'Keluar', onclick: logout }, '⎋'))
 
@@ -203,7 +205,7 @@ function render(opts = {}) {
     onkeydown: (e) => { if (e.key === 'Enter') createTopic(e.target.value); if (e.key === 'Escape') { state.newTopic = null; render() } },
   })
   fill(els.side, 
-    h('h2', {}, state.rail === 'dm' ? 'Pesan langsung' : railConv?.title ?? ''),
+    h('h2', {}, state.rail === 'dm' ? 'Obrolan' : railConv?.title ?? ''),
     !forums.length && state.rail !== 'dm' && h('p', { class: 'muted small pad' }, 'Belum ada grup dengan Topics. Buat grup di Telegram, aktifkan Topics, lalu muat ulang.'),
     h('div', { class: 'section' }, h('span', {}, state.rail === 'dm' ? 'Percakapan' : 'Channel'),
       state.rail !== 'dm' && railConv && h('button', { title: 'Channel baru', onclick: () => { state.newTopic = ''; render(); els.side.querySelector('.newtopic')?.focus() } }, '+')),
@@ -211,7 +213,7 @@ function render(opts = {}) {
     items.map((it) => h('button', {
       class: 'item' + (state.active?.conv === it.conv.key && state.active.topic === it.id ? ' on' : ''),
       onclick: () => openTopic(it.conv, it.id),
-    }, (state.rail === 'dm' ? '● ' : '# ') + it.label)),
+    }, (state.rail === 'dm' ? (it.conv.kind === 'group' ? '👥 ' : '● ') : '# ') + it.label)),
     h('button', { class: 'hostset', onclick: () => { const v = prompt('Server huddle (Jitsi):', jitsiHost()); if (v) { setJitsiHost(v); render() } } }, 'Server huddle: ' + jitsiHost() + ' (ubah)'))
 
   // main
@@ -221,7 +223,7 @@ function render(opts = {}) {
   if (!conv || !state.active) {
     fill(els.main, h('div', { class: 'empty muted' }, 'Pilih channel di sebelah kiri.'))
   } else {
-    mainComposer.setPlaceholder(`Kirim pesan ke ${conv.kind === 'dm' ? conv.title : '#' + topicTitle(state.active.topic)}`)
+    mainComposer.setPlaceholder(`Kirim pesan ke ${conv.kind !== 'forum' ? conv.title : '#' + topicTitle(state.active.topic)}`)
     const feed = h('div', { class: 'feed' },
       h('button', { class: 'older', onclick: () => loadMessages(conv, state.active.topic, true) }, 'Muat pesan lebih lama'),
       top.map((m, i) => {
@@ -234,7 +236,7 @@ function render(opts = {}) {
     const search_ = h('input', { class: 'search', placeholder: `Cari di ${conv.title}`, value: els.query ?? '',
       oninput: (e) => { els.query = e.target.value }, onkeydown: (e) => e.key === 'Enter' && search(e.target.value) })
     fill(els.main, 
-      h('header', {}, h('button', { class: 'back', onclick: () => { state.active = null; state.thread = null; state.results = null; render() } }, '←'), h('b', {}, conv.kind === 'dm' ? conv.title : '# ' + topicTitle(state.active.topic)),
+      h('header', {}, h('button', { class: 'back', onclick: () => { state.active = null; state.thread = null; state.results = null; render() } }, '←'), h('b', {}, conv.kind !== 'forum' ? conv.title : '# ' + topicTitle(state.active.topic)),
         h('button', { class: 'huddle', title: 'Huddle (suara, video, share screen)', onclick: startHuddle }, '🎧'), search_),
       state.error && h('div', { class: 'banner', onclick: () => { state.error = ''; render() } }, state.error + ' ✕'),
       feed, mainComposer.el)

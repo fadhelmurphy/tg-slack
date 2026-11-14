@@ -9,7 +9,8 @@ Memakai [`@mtcute/web`](https://github.com/mtcute/mtcute): MTProto via WebSocket
 | Workspace | Supergroup dengan **Topics** aktif |
 | Channel | Topic |
 | Thread | Balasan ke sebuah pesan (dikelompokkan di klien) |
-| DM | Chat privat |
+| DM | Chat privat (1:1) |
+| Obrolan teman | Grup biasa (tanpa Topics), tampil bersama DM |
 | Reaksi, file, search | Fitur bawaan Telegram |
 
 ## Jalankan
